@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '@jkkn_institution/api-client';
+import { useData } from '../hooks/use-data';
 function TestInstitutions() {
     var _a = useData({
         apiKey: 'jk_71d29aade0445dd9da4f353d8a5d382d_m51zeg35',
