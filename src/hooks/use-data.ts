@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ApiResponse, UseDataConfig } from '../types';
 
+// hooks/use-data.ts
 export function useData<T>({ apiKey, endpoint, id, baseUrl }: UseDataConfig) {
   const [data, setData] = useState<T[]>([]);
   const [metadata, setMetadata] = useState<ApiResponse['metadata'] | null>(
@@ -21,21 +22,24 @@ export function useData<T>({ apiKey, endpoint, id, baseUrl }: UseDataConfig) {
       const url = `${baseUrl}${finalEndpoint}`;
 
       const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'omit' // Important for CORS
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API Error: ${response.status}`);
+      }
 
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || `API Error: ${response.status}`);
-      }
-
-      // Handle both single item and list responses
       if (id) {
-        setData([result]); // Single item wrapped in array
+        setData([result]);
         setMetadata(null);
       } else {
         setData(result.data);
