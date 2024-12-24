@@ -6,7 +6,7 @@ export declare function useData<T>({ apiKey, endpoint, id, baseUrl }: UseDataCon
         page: number;
         limit: number;
         totalPages: number;
-    } | undefined;
+    } | null;
     error: string | undefined;
     loading: boolean;
     refetch: () => Promise<void>;

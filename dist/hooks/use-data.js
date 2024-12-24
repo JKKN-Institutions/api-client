@@ -34,16 +34,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { useState, useEffect } from 'react';
+// hooks/use-data.ts
+import { useState, useEffect, useCallback } from 'react';
 export function useData(_a) {
     var _this = this;
-    var _b, _c;
     var apiKey = _a.apiKey, endpoint = _a.endpoint, id = _a.id, baseUrl = _a.baseUrl;
-    var _d = useState(null), result = _d[0], setResult = _d[1];
-    var _e = useState(true), loading = _e[0], setLoading = _e[1];
-    var _f = useState(undefined), error = _f[0], setError = _f[1];
-    var fetchData = function () { return __awaiter(_this, void 0, void 0, function () {
-        var API_URL, finalEndpoint, url, response, rawResult, err_1;
+    var _b = useState([]), data = _b[0], setData = _b[1];
+    var _c = useState(null), metadata = _c[0], setMetadata = _c[1];
+    var _d = useState(true), loading = _d[0], setLoading = _d[1];
+    var _e = useState(undefined), error = _e[0], setError = _e[1];
+    var fetchData = useCallback(function () { return __awaiter(_this, void 0, void 0, function () {
+        var finalEndpoint, url, response, result, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -51,12 +52,11 @@ export function useData(_a) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 4, 5, 6]);
-                    API_URL = baseUrl;
-                    if (!API_URL) {
+                    if (!baseUrl) {
                         throw new Error('baseUrl is required');
                     }
                     finalEndpoint = id ? "".concat(endpoint, "/").concat(id) : endpoint;
-                    url = "".concat(API_URL).concat(finalEndpoint);
+                    url = "".concat(baseUrl).concat(finalEndpoint);
                     return [4 /*yield*/, fetch(url, {
                             headers: {
                                 Authorization: "Bearer ".concat(apiKey),
@@ -67,18 +67,27 @@ export function useData(_a) {
                     response = _a.sent();
                     return [4 /*yield*/, response.json()];
                 case 3:
-                    rawResult = _a.sent();
+                    result = _a.sent();
                     if (!response.ok) {
-                        throw new Error("API Error: ".concat(response.status, " ").concat(response.statusText));
+                        throw new Error(result.error || "API Error: ".concat(response.status));
                     }
-                    setResult(rawResult);
+                    // Handle both single item and list responses
+                    if (id) {
+                        setData([result]); // Single item wrapped in array
+                        setMetadata(null);
+                    }
+                    else {
+                        setData(result.data);
+                        setMetadata(result.metadata);
+                    }
                     setError(undefined);
                     return [3 /*break*/, 6];
                 case 4:
                     err_1 = _a.sent();
                     console.error('Fetch error:', err_1);
                     setError(err_1 instanceof Error ? err_1.message : 'Unknown error');
-                    setResult(null);
+                    setData([]);
+                    setMetadata(null);
                     return [3 /*break*/, 6];
                 case 5:
                     setLoading(false);
@@ -86,13 +95,13 @@ export function useData(_a) {
                 case 6: return [2 /*return*/];
             }
         });
-    }); };
+    }); }, [apiKey, endpoint, id, baseUrl]);
     useEffect(function () {
         fetchData();
-    }, [apiKey, endpoint, id, baseUrl]);
+    }, [fetchData]);
     return {
-        items: ((_b = result === null || result === void 0 ? void 0 : result.data) === null || _b === void 0 ? void 0 : _b.data) || [],
-        metadata: (_c = result === null || result === void 0 ? void 0 : result.data) === null || _c === void 0 ? void 0 : _c.metadata,
+        items: data,
+        metadata: metadata,
         error: error,
         loading: loading,
         refetch: fetchData
